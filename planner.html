@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дневник — Расписание / Тренировки / Проект</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600;700&family=Manrope:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080b0f;
+  --surface:  #0e1218;
+  --card:     #141920;
+  --card2:    #1a2130;
+  --border:   #1f2d3d;
+  --border2:  #2a3f58;
+  --accent:   #e8ff47;
+  --orange:   #ff7b39;
+  --blue:     #38b6ff;
+  --purple:   #a78bfa;
+  --green:    #4ade80;
+  --red:      #f87171;
+  --text:     #eef2f7;
+  --sub:      #6b7c93;
+  --dim:      #3d4f63;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Manrope', sans-serif;
+  --display:  'Bebas Neue', sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ─── HEADER ─── */
+.site-header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:20px 32px;
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+}
+.logo{
+  font-family:var(--display);
+  font-size:28px;letter-spacing:3px;
+  color:var(--text);
+  display:flex;align-items:center;gap:10px;
+}
+.logo-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 12px var(--accent);
+}
+.header-meta{
+  font-family:var(--mono);
+  font-size:11px;color:var(--sub);
+  letter-spacing:1px;
+}
+.header-meta span{color:var(--accent);}
+
+/* ─── WEEK STRIP ─── */
+.week-strip{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:12px 32px;
+  display:flex;gap:8px;overflow-x:auto;
+}
+.week-btn{
+  flex-shrink:0;
+  background:none;
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:10px 18px;
+  cursor:pointer;
+  transition:all .18s;
+  text-align:center;
+  min-width:90px;
+}
+.week-btn:hover{border-color:var(--border2);}
+.week-btn.active{
+  border-color:var(--accent);
+  background:rgba(232,255,71,.07);
+}
+.week-btn .wd{
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:2px;color:var(--sub);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.week-btn.active .wd{color:var(--accent);}
+.week-btn .wn{
+  font-family:var(--display);font-size:22px;color:var(--text);
+  line-height:1;
+}
+.week-btn .wtags{
+  display:flex;gap:4px;justify-content:center;margin-top:5px;flex-wrap:wrap;
+}
+.wtag{
+  width:6px;height:6px;border-radius:50%;
+}
+
+/* ─── LAYOUT ─── */
+.main{max-width:1100px;margin:0 auto;padding:28px 24px 80px;}
+
+.day-view{display:none;}
+.day-view.active{display:block;}
+
+.day-title{
+  font-family:var(--display);
+  font-size:42px;letter-spacing:2px;
+  margin-bottom:6px;
+}
+.day-subtitle{
+  font-family:var(--mono);font-size:12px;
+  color:var(--sub);letter-spacing:1px;
+  margin-bottom:24px;
+}
+
+/* Three-column panel tabs */
+.panel-tabs{
+  display:flex;gap:6px;margin-bottom:20px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:0;
+}
+.panel-tab{
+  background:none;border:none;
+  padding:10px 20px;cursor:pointer;
+  font-family:var(--mono);font-size:12px;
+  color:var(--sub);letter-spacing:1px;
+  border-bottom:2px solid transparent;
+  transition:all .15s;
+  margin-bottom:-1px;
+}
+.panel-tab:hover{color:var(--text);}
+.panel-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ─── SCHEDULE PANEL ─── */
+.schedule-grid{display:flex;flex-direction:column;gap:8px;}
+
+.schedule-item{
+  display:flex;gap:16px;align-items:stretch;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  transition:border-color .15s;
+}
+.schedule-item:hover{border-color:var(--border2);}
+
+.sched-time{
+  font-family:var(--mono);font-size:12px;
+  color:var(--sub);
+  padding:14px 16px;
+  min-width:90px;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  justify-content:center;
+  background:var(--surface);
+  text-align:right;
+}
+.sched-time .t1{font-size:14px;color:var(--text);font-weight:600;}
+.sched-time .t2{font-size:10px;margin-top:2px;}
+
+.sched-body{padding:14px 18px;flex:1;}
+.sched-title{font-weight:600;font-size:14px;margin-bottom:4px;}
+.sched-note{font-size:12px;color:var(--sub);line-height:1.5;}
+
+.sched-bar{
+  width:4px;flex-shrink:0;
+}
+.bar-work{background:var(--blue);}
+.bar-gym{background:var(--orange);}
+.bar-food{background:var(--green);}
+.bar-project{background:var(--purple);}
+.bar-rest{background:var(--dim);}
+.bar-sleep{background:#1e2d42;}
+.bar-morning{background:var(--accent);}
+
+/* ─── WORKOUT PANEL ─── */
+.workout-rest-note{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:20px 24px;
+  font-family:var(--mono);font-size:13px;color:var(--sub);
+  text-align:center;letter-spacing:1px;
+}
+
+.wo-section{margin-bottom:20px;}
+.wo-section-label{
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.wo-section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.ex-table{width:100%;border-collapse:collapse;}
+.ex-table thead th{
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;
+  color:var(--sub);padding:8px 12px;
+  text-align:left;border-bottom:1px solid var(--border);
+  background:var(--surface);
+}
+.ex-table tbody tr{border-bottom:1px solid var(--border);}
+.ex-table tbody tr:last-child{border:none;}
+.ex-table tbody tr:hover{background:rgba(255,255,255,.02);}
+.ex-table td{padding:12px;font-size:13px;vertical-align:top;}
+.ex-name{font-weight:600;margin-bottom:3px;}
+.ex-hint{font-size:11px;color:var(--sub);font-style:italic;}
+.ex-sets{font-family:var(--mono);font-size:13px;color:var(--accent);}
+.ex-wt{font-family:var(--mono);font-size:12px;}
+.ex-wt-target{font-size:11px;color:var(--orange);margin-top:2px;}
+.ex-rest{font-family:var(--mono);font-size:11px;color:var(--sub);}
+
+.wo-log-area{
+  margin-top:20px;
+}
+.wo-log-header{
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--orange);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.wo-log-header::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.log-entry-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:12px;}
+.log-ex-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:6px;padding:12px;
+}
+.log-ex-name{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text);}
+.log-sets-list{display:flex;flex-direction:column;gap:4px;}
+.log-set-row{
+  display:flex;gap:6px;align-items:center;
+}
+.log-set-num{
+  font-family:var(--mono);font-size:10px;
+  color:var(--sub);min-width:20px;
+}
+.log-input{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:4px 8px;
+  font-family:var(--mono);font-size:12px;
+  color:var(--text);width:100%;
+  transition:border-color .15s;
+}
+.log-input:focus{outline:none;border-color:var(--accent);}
+.log-input::placeholder{color:var(--dim);}
+
+.log-note{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:10px 14px;
+  font-family:var(--sans);font-size:13px;
+  color:var(--text);resize:vertical;min-height:70px;
+  transition:border-color .15s;
+}
+.log-note:focus{outline:none;border-color:var(--accent);}
+.log-note::placeholder{color:var(--dim);}
+
+/* ─── NUTRITION PANEL ─── */
+.macro-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:10px;margin-bottom:20px;
+}
+.macro-chip{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:6px;padding:14px;
+  position:relative;overflow:hidden;
+}
+.macro-chip::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+.macro-chip.kc::before{background:var(--accent);}
+.macro-chip.pr::before{background:var(--orange);}
+.macro-chip.cb::before{background:var(--blue);}
+.macro-chip.ft::before{background:var(--purple);}
+.macro-chip .ml{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:4px;}
+.macro-chip .mv{font-family:var(--display);font-size:28px;line-height:1;}
+.macro-chip.kc .mv{color:var(--accent);}
+.macro-chip.pr .mv{color:var(--orange);}
+.macro-chip.cb .mv{color:var(--blue);}
+.macro-chip.ft .mv{color:var(--purple);}
+.macro-chip .mu{font-size:11px;color:var(--sub);margin-top:2px;}
+
+.meal-list{display:flex;flex-direction:column;gap:8px;}
+.meal-item{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.meal-head{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 16px;cursor:pointer;
+  transition:background .15s;
+}
+.meal-head:hover{background:rgba(255,255,255,.02);}
+.meal-time-badge{
+  font-family:var(--mono);font-size:12px;
+  min-width:48px;color:var(--sub);
+}
+.meal-name-col{flex:1;}
+.meal-title{font-weight:600;font-size:14px;}
+.meal-src{
+  font-family:var(--mono);font-size:9px;
+  padding:2px 6px;border-radius:3px;
+  margin-left:8px;
+}
+.src-work{background:rgba(56,182,255,.12);color:var(--blue);border:1px solid rgba(56,182,255,.2);}
+.src-home{background:rgba(232,255,71,.08);color:var(--accent);border:1px solid rgba(232,255,71,.15);}
+.meal-kcal{font-family:var(--mono);font-size:11px;color:var(--sub);white-space:nowrap;}
+.meal-prot{font-family:var(--mono);font-size:11px;color:var(--orange);white-space:nowrap;}
+.meal-chevron{font-family:var(--mono);font-size:12px;color:var(--dim);}
+
+.meal-body{padding:0 16px 14px;display:none;}
+.meal-body.open{display:block;}
+.meal-food-list{list-style:none;border-top:1px solid var(--border);padding-top:10px;}
+.meal-food-item{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;gap:12px;
+  padding:7px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.meal-food-item:last-child{border:none;}
+.mf-note{font-size:11px;color:var(--sub);margin-top:2px;}
+.mf-macro{text-align:right;}
+.mf-kcal{font-family:var(--mono);font-size:11px;color:var(--sub);}
+.mf-prot{font-family:var(--mono);font-size:11px;color:var(--orange);}
+
+/* ─── PROJECT PANEL ─── */
+.proj-header-row{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:20px;flex-wrap:wrap;
+}
+.proj-day-label{
+  font-family:var(--display);font-size:32px;letter-spacing:1px;
+}
+.proj-status-badge{
+  font-family:var(--mono);font-size:11px;
+  padding:4px 10px;border-radius:4px;
+  border:1px solid;
+}
+.status-active{border-color:var(--green);color:var(--green);}
+.status-review{border-color:var(--blue);color:var(--blue);}
+.status-debug{border-color:var(--red);color:var(--red);}
+.status-plan{border-color:var(--purple);color:var(--purple);}
+
+.proj-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+.proj-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.proj-card-head{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;
+  letter-spacing:2px;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.proj-card-head .dot{width:7px;height:7px;border-radius:50%;}
+.proj-card-body{padding:12px 14px;}
+
+/* Feature / done items */
+.feat-list{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.feat-item{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:13px;padding:6px 8px;
+  border-radius:4px;
+  transition:background .12s;
+}
+.feat-item:hover{background:rgba(255,255,255,.03);}
+.feat-cb{
+  width:15px;height:15px;
+  border:1px solid var(--border2);border-radius:3px;
+  flex-shrink:0;margin-top:2px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+  font-size:10px;color:var(--green);
+}
+.feat-cb.checked{background:rgba(74,222,128,.1);border-color:var(--green);}
+.feat-text{flex:1;line-height:1.4;}
+.feat-text.done{text-decoration:line-through;color:var(--sub);}
+.feat-type{
+  font-family:var(--mono);font-size:9px;
+  padding:1px 5px;border-radius:2px;
+  flex-shrink:0;margin-top:3px;
+}
+.ft-feat{background:rgba(74,222,128,.1);color:var(--green);}
+.ft-fix{background:rgba(248,113,113,.1);color:var(--red);}
+.ft-refactor{background:rgba(167,139,250,.1);color:var(--purple);}
+.ft-test{background:rgba(56,182,255,.1);color:var(--blue);}
+
+/* Текстовые области проекта */
+.proj-textarea{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px 14px;
+  font-family:var(--sans);font-size:13px;
+  color:var(--text);resize:vertical;
+  min-height:80px;
+  transition:border-color .15s;
+  line-height:1.6;
+}
+.proj-textarea:focus{outline:none;border-color:var(--purple);}
+.proj-textarea::placeholder{color:var(--dim);}
+
+.proj-add-row{
+  display:flex;gap:8px;margin-top:8px;
+}
+.proj-add-input{
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:8px 12px;
+  font-family:var(--sans);font-size:13px;
+  color:var(--text);
+  transition:border-color .15s;
+}
+.proj-add-input:focus{outline:none;border-color:var(--purple);}
+.proj-add-input::placeholder{color:var(--dim);}
+
+.proj-add-type{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:8px 10px;
+  font-family:var(--mono);font-size:11px;
+  color:var(--text);cursor:pointer;
+  transition:border-color .15s;
+}
+.proj-add-type:focus{outline:none;border-color:var(--purple);}
+
+.btn-add{
+  background:rgba(167,139,250,.1);
+  border:1px solid rgba(167,139,250,.3);
+  border-radius:6px;
+  padding:8px 16px;
+  font-family:var(--mono);font-size:12px;
+  color:var(--purple);cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.btn-add:hover{background:rgba(167,139,250,.2);}
+
+/* save flash */
+.save-toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--card2);border:1px solid var(--green);
+  color:var(--green);
+  font-family:var(--mono);font-size:12px;
+  padding:10px 20px;border-radius:6px;
+  opacity:0;transform:translateY(10px);
+  transition:all .3s;pointer-events:none;
+  z-index:999;
+}
+.save-toast.show{opacity:1;transform:translateY(0);}
+
+/* Stats ribbon */
+.stats-ribbon{
+  display:flex;gap:10px;flex-wrap:wrap;
+  margin-bottom:24px;
+}
+.stat-pill{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;
+  font-family:var(--mono);font-size:11px;
+  display:flex;align-items:center;gap:6px;
+}
+.stat-pill .sp-val{color:var(--accent);font-weight:600;}
+.stat-pill .sp-lbl{color:var(--sub);}
+
+/* Tip */
+.tip{
+  background:rgba(232,255,71,.04);
+  border:1px solid rgba(232,255,71,.15);
+  border-radius:6px;padding:12px 16px;
+  font-size:12px;color:var(--sub);
+  margin-top:12px;line-height:1.6;
+}
+.tip strong{color:var(--accent);}
+
+@media(max-width:700px){
+  .site-header{padding:14px 16px;}
+  .week-strip{padding:10px 12px;}
+  .main{padding:16px 14px 60px;}
+  .macro-row{grid-template-columns:repeat(2,1fr);}
+  .proj-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    COMMAND LOG
+  </div>
+  <div class="header-meta">
+    <div>МАССА · СИЛА · ПРОЕКТ</div>
+    <div style="margin-top:4px;">79 КГ · <span id="live-date"></span></div>
+  </div>
+</header>
+
+<!-- WEEK STRIP -->
+<div class="week-strip" id="week-strip">
+  <!-- JS rendered -->
+</div>
+
+<!-- MAIN -->
+<div class="main" id="main-area">
+  <!-- JS rendered -->
+</div>
+
+<div class="save-toast" id="toast">✓ сохранено</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────
+const DAYS = [
+  {id:'mon', label:'ПН', name:'Понедельник', gym:true,  work:true},
+  {id:'tue', label:'ВТ', name:'Вторник',     gym:false, work:true},
+  {id:'wed', label:'СР', name:'Среда',       gym:true,  work:true},
+  {id:'thu', label:'ЧТ', name:'Четверг',     gym:false, work:true},
+  {id:'fri', label:'ПТ', name:'Пятница',     gym:true,  work:true},
+  {id:'sat', label:'СБ', name:'Суббота',     gym:false, work:false},
+  {id:'sun', label:'ВС', name:'Воскресенье', gym:false, work:false},
+];
+
+const GYM_DAYS_ROTATION = ['mon','wed','fri']; // 3-day base; sat optional 4th
+
+// Workout plan per gym day (A/B/C rotation)
+const WORKOUTS = {
+  A: {
+    name: 'ГРУДЬ · ПЛЕЧИ · ТРИЦЕПС',
+    groups: [
+      {
+        label: 'ОСНОВНАЯ СИЛА',
+        exercises: [
+          {name:'Жим штанги лёжа', hint:'3×5 тяжёлый, разминка 50%+70% перед', sets:'1×3 (80кг) + 3×5', weight:'80–85 кг', target:'+2.5 кг/нед', rest:'3–4 мин', logSets:3},
+          {name:'Жим штанги стоя (ОНП)', hint:'Строгий, без читинга', sets:'4×5–6', weight:'50–55 кг', target:'Подбери по форме', rest:'3 мин', logSets:4},
+        ]
+      },
+      {
+        label: 'ОБЪЁМ / ГИПЕРТРОФИЯ',
+        exercises: [
+          {name:'Жим гантелей лёжа', hint:'Полная амплитуда, растяжка внизу', sets:'3×10–12', weight:'28–32 кг/гант.', rest:'2 мин', logSets:3},
+          {name:'Разводка гантелей лёжа', hint:'Контроль без резкого финиша', sets:'3×12–15', weight:'16–20 кг/гант.', rest:'90 сек', logSets:3},
+          {name:'Жим гантелей сидя (дельты)', hint:'Локти чуть перед собой', sets:'3×10–12', weight:'22–26 кг/гант.', rest:'2 мин', logSets:3},
+          {name:'Разводка стоя (боковые дельты)', hint:'Мизинец выше большого пальца', sets:'3×15', weight:'10–12 кг/гант.', rest:'60 сек', logSets:3},
+        ]
+      },
+      {
+        label: 'ТРИЦЕПС',
+        exercises: [
+          {name:'Французский жим лёжа', hint:'EZ-гриф, локти вертикально', sets:'3×8–10', weight:'35–40 кг', target:'Прогресс от 35', rest:'2 мин', logSets:3},
+          {name:'Разгибания на блоке', hint:'Суперсет с фр. жимом', sets:'3×12–15', weight:'30–35 кг', rest:'60 сек', logSets:3},
+        ]
+      }
+    ]
+  },
+  B: {
+    name: 'СПИНА · БИЦЕПС',
+    groups: [
+      {
+        label: 'ОСНОВНАЯ СИЛА',
+        exercises: [
+          {name:'Тяга штанги в наклоне (обр. хват)', hint:'Спина параллельна полу, тянуть к животу', sets:'4×5–6', weight:'70–80 кг', target:'+2.5 кг каждые 2 нед.', rest:'3–4 мин', logSets:4},
+          {name:'Подтягивания (утяжелённые)', hint:'Как только 3×10 — вешай +5 кг', sets:'4×max (цель 8–10)', weight:'Вес тела → +пояс', target:'Сейчас 8 → цель 12', rest:'3 мин', logSets:4},
+        ]
+      },
+      {
+        label: 'ОБЪЁМ / СПИНА',
+        exercises: [
+          {name:'Тяга верхнего блока широким хватом', hint:'Тянуть к ключицам, сводить лопатки', sets:'3×10–12', weight:'55–65 кг', rest:'2 мин', logSets:3},
+          {name:'Тяга горизонтального блока (V)', hint:'Пауза 1 сек в финишной точке', sets:'3×12', weight:'60–70 кг', rest:'90 сек', logSets:3},
+          {name:'Тяга гантели одной рукой', hint:'Без ротации корпуса', sets:'3×12 (каждая рука)', weight:'32–36 кг', rest:'90 сек', logSets:3},
+          {name:'Шраги со штангой', hint:'Медленно вниз, пауза в пике', sets:'3×15', weight:'80–100 кг', rest:'90 сек', logSets:3},
+        ]
+      },
+      {
+        label: 'БИЦЕПС',
+        exercises: [
+          {name:'Подъём гантелей (супинация)', hint:'Акцент на пиковое сокращение', sets:'3×10–12', weight:'15–18 кг/гант.', rest:'90 сек', logSets:3},
+          {name:'Молотковые сгибания', hint:'Нейтральный хват — брахиалис', sets:'3×12', weight:'16–20 кг/гант.', rest:'60 сек', logSets:3},
+        ]
+      }
+    ]
+  },
+  C: {
+    name: 'НОГИ · КОР',
+    groups: [
+      {
+        label: 'ОСНОВНАЯ СИЛА',
+        exercises: [
+          {name:'Приседания со штангой', hint:'Разминка: 2×5 с 50%, 1×3 с 75%', sets:'3×5', weight:'85–90 кг', target:'+2.5 кг каждые 1–2 нед.', rest:'4–5 мин', logSets:3},
+          {name:'Румынская тяга (RDL)', hint:'Бёдра назад, спина прямая', sets:'3×8', weight:'80–90 кг', rest:'3 мин', logSets:3},
+        ]
+      },
+      {
+        label: 'КВАДРИЦЕПС / ОБЪЁМ',
+        exercises: [
+          {name:'Жим ногами (полная амплитуда)', hint:'После приседа — объёмная работа', sets:'3×10–12', weight:'130–140 кг', rest:'2.5 мин', logSets:3},
+          {name:'Болгарские выпады', hint:'Взрывной подъём, медленный спуск', sets:'3×10 (каждая нога)', weight:'20–24 кг/гант.', rest:'2 мин', logSets:3},
+          {name:'Разгибание ног в тренажёре', hint:'Изоляция квадрицепса финишером', sets:'3×15', weight:'Комфортный', rest:'60 сек', logSets:3},
+        ]
+      },
+      {
+        label: 'ЗАДНЯЯ ПОВЕРХНОСТЬ / КОР',
+        exercises: [
+          {name:'Сгибание ног лёжа', hint:'Эксцентрик 3 секунды вниз', sets:'3×12', weight:'Рабочий', rest:'90 сек', logSets:3},
+          {name:'Подъём на носки стоя', hint:'Пауза вверху 2 сек', sets:'4×20', weight:'Средний', rest:'60 сек', logSets:4},
+          {name:'Планка + скручивания (суперсет)', hint:'60 сек планка → 20 скручиваний', sets:'3 сета', weight:'Вес тела', rest:'60 сек', logSets:3},
+        ]
+      }
+    ]
+  },
+  D: {
+    name: 'FULL BODY · СЛАБЫЕ ЗВЕНЬЯ',
+    groups: [
+      {
+        label: 'СИЛОВОЕ ОСНОВАНИЕ',
+        exercises: [
+          {name:'Жим лёжа (80% интенсивность)', hint:'Акцент на скорость движения', sets:'3×5', weight:'~70 кг', rest:'2.5 мин', logSets:3},
+          {name:'Становая тяга', hint:'Строго по технике, не максимальная', sets:'3×5', weight:'90–100 кг', rest:'4 мин', logSets:3},
+        ]
+      },
+      {
+        label: 'ОБЪЁМ / ДОБИВКА',
+        exercises: [
+          {name:'Тяга верхнего блока (узкий нейт.)', hint:'Нижняя часть спины + бицепс', sets:'3×12', weight:'55–60 кг', rest:'90 сек', logSets:3},
+          {name:'Отжимания на брусьях (утяжелённые)', hint:'Наклон → грудь, прямо → трицепс', sets:'3×10–12', weight:'+10–15 кг', rest:'2 мин', logSets:3},
+          {name:'Сгибания на EZ-штанге (бицепс)', hint:'Вариация для смены стимула', sets:'3×10', weight:'35–40 кг', rest:'90 сек', logSets:3},
+          {name:'Жим Арнольда', hint:'Полная ротация — все пучки дельты', sets:'3×12', weight:'20–22 кг/гант.', rest:'90 сек', logSets:3},
+          {name:'Face pull (лицевая тяга)', hint:'Здоровье вращательной манжеты', sets:'3×15–20', weight:'Лёгкий', rest:'60 сек', logSets:3},
+        ]
+      }
+    ]
+  },
+  REST: null
+};
+
+// Which workout falls on which weekday (rotates A→B→C, D optional on Sat)
+const GYM_SCHEDULE = {mon:'A', wed:'B', fri:'C', sat:'D'};
+
+// Nutrition per day type
+const NUTRITION = {
+  train: {
+    kcal:2950, protein:175, carbs:345, fat:80,
+    meals:[
+      {time:'07:00',name:'Завтрак',src:'home',kcal:'~650 ккал',prot:'~40г',
+       foods:[
+         {name:'Овсянка на молоке 3.2%',note:'100г сухой + 300мл. Варить 5 мин',kcal:'~400',prot:'15г'},
+         {name:'Яйца варёные (3 шт)',note:'Можно добавить в овсянку или отдельно',kcal:'~210',prot:'18г'},
+         {name:'Банан',note:'Быстрые углеводы — заряд с утра',kcal:'~90',prot:'—'},
+       ]},
+      {time:'10:30',name:'Перекус',src:'home',kcal:'~350 ккал',prot:'~30г',
+       foods:[
+         {name:'Творог 5% + мёд',note:'200г творога в контейнере, мёд 1 ч.л.',kcal:'~220',prot:'26г'},
+         {name:'Хлебцы цельнозерновые',note:'3–4 штуки',kcal:'~120',prot:'4г'},
+       ]},
+      {time:'13:00',name:'Обед',src:'work',kcal:'~750–900 ккал',prot:'~40г',
+       foods:[
+         {name:'Суп (борщ / щи / гороховый)',note:'Полная порция — не пропускай',kcal:'~250',prot:'10г'},
+         {name:'Второе (мясо + гарнир)',note:'Предпочитать мясо/рыбу + крупы',kcal:'~500',prot:'30г'},
+         {name:'Хлеб 1–2 куска',note:'Лучше цельнозерновой',kcal:'~100',prot:'—'},
+       ]},
+      {time:'16:30',name:'Пре-тренировочный',src:'home',kcal:'~380 ккал',prot:'~25г',
+       foods:[
+         {name:'Куриная грудка варёная',note:'150г в контейнере (готовишь с вечера)',kcal:'~165',prot:'30г'},
+         {name:'Рис / гречка варёная',note:'100г — лёгкие углеводы до тренировки',kcal:'~130',prot:'3г'},
+         {name:'Банан',note:'За 30–40 мин до зала — быстрая энергия',kcal:'~90',prot:'—'},
+       ]},
+      {time:'20:00',name:'Послетренировочный',src:'home',kcal:'~400 ккал',prot:'~40г',
+       foods:[
+         {name:'Протеиновый шейк',note:'1.5 мерника (40–45г) с водой или молоком',kcal:'~220',prot:'38г'},
+         {name:'Банан или изюм 30г',note:'Быстрые углеводы — восстановление гликогена',kcal:'~95',prot:'—'},
+       ]},
+      {time:'21:00',name:'Ужин',src:'home',kcal:'~600 ккал',prot:'~45г',
+       foods:[
+         {name:'Куриные бёдра / говядина / рыба',note:'200–220г. Лосось 2–3 раза в нед.',kcal:'~320',prot:'38г'},
+         {name:'Гречка / рис / картошка',note:'100–120г варёных',kcal:'~145',prot:'3г'},
+         {name:'Овощи (огурец, помидор, зелень)',note:'Без ограничений — клетчатка',kcal:'~40',prot:'—'},
+       ]},
+      {time:'22:30',name:'На ночь',src:'home',kcal:'~200 ккал',prot:'~25г',
+       foods:[
+         {name:'Творог 5% (без сахара)',note:'150–200г. Казеин 6–8ч — кормит мышцы',kcal:'~180',prot:'22г'},
+       ]},
+    ]
+  },
+  rest: {
+    kcal:2600, protein:170, carbs:295, fat:78,
+    meals:[
+      {time:'08:00',name:'Завтрак',src:'home',kcal:'~550 ккал',prot:'~35г',
+       foods:[
+         {name:'Яичница / омлет (3 яйца)',note:'С овощами — помидор, перец, зелень',kcal:'~230',prot:'18г'},
+         {name:'Цельнозерновой хлеб (2 тоста)',note:'С авокадо или творожным сыром',kcal:'~200',prot:'7г'},
+         {name:'Греческий йогурт',note:'150г без сахара, можно мёд',kcal:'~120',prot:'10г'},
+       ]},
+      {time:'11:00',name:'Перекус',src:'home',kcal:'~250 ккал',prot:'~20г',
+       foods:[
+         {name:'Орехи (грецкие / миндаль)',note:'30г — здоровые жиры, насыщение',kcal:'~190',prot:'5г'},
+         {name:'Творог 100г',note:'Добавь если мало белка',kcal:'~90',prot:'12г'},
+       ]},
+      {time:'13:00',name:'Обед',src:'work',kcal:'~750 ккал',prot:'~40г',
+       foods:[
+         {name:'Полный обед как обычно',note:'В день отдыха можно меньше гарнира',kcal:'~750',prot:'40г'},
+       ]},
+      {time:'16:30',name:'Перекус',src:'home',kcal:'~280 ккал',prot:'~28г',
+       foods:[
+         {name:'Творог 5% с ягодами',note:'200г + горсть ягод (разморозить с утра)',kcal:'~230',prot:'26г'},
+         {name:'Яблоко / груша',note:'Клетчатка + фруктоза',kcal:'~60',prot:'—'},
+       ]},
+      {time:'19:00',name:'Ужин',src:'home',kcal:'~500 ккал',prot:'~45г',
+       foods:[
+         {name:'Рыба запечённая (лосось / треска)',note:'200г. Лосось 2–3 раза нед. — омега-3',kcal:'~320',prot:'38г'},
+         {name:'Салат из свежих овощей',note:'Огурец, помидор, зелень, оливковое масло',kcal:'~100',prot:'2г'},
+         {name:'Гречка / чечевица (небольшая)',note:'70г варёных — меньше чем в трен. день',kcal:'~80',prot:'3г'},
+       ]},
+      {time:'22:00',name:'На ночь',src:'home',kcal:'~180 ккал',prot:'~22г',
+       foods:[
+         {name:'Творог 5%',note:'150г без сладкого. Медленный казеин',kcal:'~170',prot:'20г'},
+       ]},
+    ]
+  }
+};
+
+// ─── STATE ────────────────────────────────────────────────────────────
+let activeDay = DAYS[0].id;
+let gymCounter = 0; // tracks A/B/C rotation based on saved data
+
+function getWorkoutType(dayId) {
+  return GYM_SCHEDULE[dayId] || null;
+}
+
+function isGymDay(dayId) {
+  return !!getWorkoutType(dayId);
+}
+
+function getNutritionType(dayId) {
+  return isGymDay(dayId) ? 'train' : 'rest';
+}
+
+// ─── STORAGE ──────────────────────────────────────────────────────────
+function storeKey(dayId, type) { return `planner_${dayId}_${type}`; }
+
+function save(dayId, type, data) {
+  try { localStorage.setItem(storeKey(dayId, type), JSON.stringify(data)); } catch(e){}
+  showToast();
+}
+function load(dayId, type) {
+  try {
+    const v = localStorage.getItem(storeKey(dayId, type));
+    return v ? JSON.parse(v) : null;
+  } catch(e){ return null; }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ─── DATE ─────────────────────────────────────────────────────────────
+const RU_DAYS = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const RU_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function updateDate() {
+  const d = new Date();
+  document.getElementById('live-date').textContent =
+    `${RU_DAYS[d.getDay()]}, ${d.getDate()} ${RU_MONTHS[d.getMonth()]}`;
+}
+updateDate(); setInterval(updateDate, 60000);
+
+// ─── WEEK STRIP ────────────────────────────────────────────────────────
+function renderWeekStrip() {
+  const strip = document.getElementById('week-strip');
+  strip.innerHTML = DAYS.map(d => {
+    const gym = isGymDay(d.id);
+    const wt = getWorkoutType(d.id);
+    const tags = [];
+    if(d.work) tags.push(`<div class="wtag" style="background:var(--blue)" title="Работа"></div>`);
+    if(gym) tags.push(`<div class="wtag" style="background:var(--orange)" title="Зал ${wt}"></div>`);
+    if(!d.work && !gym) tags.push(`<div class="wtag" style="background:var(--dim)" title="Отдых"></div>`);
+    tags.push(`<div class="wtag" style="background:var(--purple)" title="Проект"></div>`);
+
+    return `<button class="week-btn${d.id===activeDay?' active':''}" onclick="switchDay('${d.id}')">
+      <div class="wd">${d.label}</div>
+      <div class="wn">${gym?wt:'—'}</div>
+      <div class="wtags">${tags.join('')}</div>
+    </button>`;
+  }).join('');
+}
+
+// ─── SCHEDULE DATA ─────────────────────────────────────────────────────
+function getSchedule(dayId) {
+  const d = DAYS.find(x=>x.id===dayId);
+  const gym = isGymDay(dayId);
+  const wt = getWorkoutType(dayId);
+  const items = [];
+
+  items.push({time:'06:30–07:00',title:'Подъём · Завтрак',note:'Овсянка + яйца + банан. Не пропускай — самый важный приём.',bar:'bar-morning'});
+
+  if(d.work) {
+    items.push({time:'08:30',title:'Выезд / дорога',note:'Берёшь с собой: контейнер с едой + шейкер + бутылка воды',bar:'bar-rest'});
+    items.push({time:'09:00–13:00',title:'Работа (первый блок)',note:'Фокус без прерываний. Перекус в 10:30 прямо на рабочем месте.',bar:'bar-work'});
+    items.push({time:'13:00–14:00',title:'Обед на работе',note:'Суп + второе. Полная порция — не экономь на еде.',bar:'bar-food'});
+    items.push({time:'14:00–17:30',title:'Работа (второй блок)',note:'Перекус в 16:30 — контейнер с курицей/рисом + банан перед залом.',bar:'bar-work'});
+  } else {
+    items.push({time:'09:00–12:00',title:'Свободное утро',note:'Домашние дела, отдых, прогулка. Перекус в 11:00.',bar:'bar-rest'});
+    items.push({time:'13:00',title:'Обед (дома)',note:'Полноценный приём: мясо / рыба + гарнир + овощи.',bar:'bar-food'});
+    items.push({time:'14:00–17:00',title:'Отдых / восстановление',note:'Сон, прогулка, растяжка. Не планируй нагрузки.',bar:'bar-rest'});
+  }
+
+  if(gym) {
+    items.push({time:'17:30–18:00',title:'Дорога до зала',note:'Предтренировочный перекус уже съеден. Выпить воду.',bar:'bar-rest'});
+    items.push({time:'18:00–19:30',title:`🏋️ Зал — Программа ${wt}`,note:`Тренировка 1.5 часа · Разминка 5–10 мин · Заминка 5 мин · Креатин + Animal M-Stak за 30 мин до`,bar:'bar-gym'});
+    items.push({time:'19:30–20:00',title:'Возвращение домой',note:'Протеиновый шейк + банан сразу после — не затягивай.',bar:'bar-food'});
+    items.push({time:'20:00–21:00',title:'Ужин · Восстановление',note:'Полноценный ужин: мясо/рыба + гарнир + овощи. Душ, отдых.',bar:'bar-food'});
+    items.push({time:'21:00–22:30',title:'💻 Работа над проектом',note:'Разработка, дебаггинг, документация. Фиксируй прогресс в дневнике.',bar:'bar-project'});
+  } else {
+    if(d.work) {
+      items.push({time:'17:30–18:00',title:'Дорога домой',note:'Лёгкий перекус если нужно.',bar:'bar-rest'});
+      items.push({time:'18:00–19:00',title:'Ужин · Отдых',note:'Полноценный ужин.',bar:'bar-food'});
+      items.push({time:'19:00–22:30',title:'💻 Работа над проектом',note:'Больше времени на проект — нет тренировки. Используй блок целиком.',bar:'bar-project'});
+    } else {
+      items.push({time:'17:00–19:00',title:'Ужин · Прогулка',note:'Рыба + овощи. Лёгкая прогулка 30–40 мин.',bar:'bar-food'});
+      items.push({time:'19:00–22:00',title:'💻 Проект / личное',note:'Работа над проектом или полный отдых — по ощущениям.',bar:'bar-project'});
+    }
+  }
+
+  items.push({time:'22:30',title:'Творог на ночь · Отбой',note:'150–200г творога 5%. Сон не позже 23:00–23:30 — критично для роста.',bar:'bar-sleep'});
+
+  return items;
+}
+
+// ─── RENDER SCHEDULE ──────────────────────────────────────────────────
+function renderSchedule(dayId) {
+  const items = getSchedule(dayId);
+  return `<div class="schedule-grid">${items.map(it=>`
+    <div class="schedule-item">
+      <div class="sched-bar ${it.bar}"></div>
+      <div class="sched-time"><div class="t1">${it.time.split('–')[0].split('·')[0].trim()}</div><div class="t2">${it.time.includes('–')?it.time:'—'}</div></div>
+      <div class="sched-body"><div class="sched-title">${it.title}</div><div class="sched-note">${it.note}</div></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ─── RENDER WORKOUT ──────────────────────────────────────────────────
+function renderWorkout(dayId) {
+  const wt = getWorkoutType(dayId);
+  if(!wt) {
+    const saved = load(dayId, 'workout_note') || '';
+    return `<div class="workout-rest-note">
+      // ДЕНЬ ОТДЫХА — мышцы растут во время восстановления, не тренировки
+    </div>
+    <div style="margin-top:14px;">
+      <div class="wo-log-header">ЗАМЕТКИ ПО ВОССТАНОВЛЕНИЮ</div>
+      <textarea class="log-note proj-textarea" placeholder="Самочувствие, сон, болезненность мышц..." 
+        onchange="save('${dayId}','workout_note',this.value)">${saved}</textarea>
+    </div>`;
+  }
+
+  const plan = WORKOUTS[wt];
+  const savedLog = load(dayId, 'workout_log') || {};
+  const savedNote = load(dayId, 'workout_note') || '';
+
+  let html = `<div class="stats-ribbon">
+    <div class="stat-pill"><span class="sp-lbl">ПРОГРАММА</span><span class="sp-val">${wt}</span></div>
+    <div class="stat-pill"><span class="sp-lbl">ФОКУС</span><span class="sp-val">${plan.name}</span></div>
+    <div class="stat-pill"><span class="sp-lbl">ДЛИТЕЛЬНОСТЬ</span><span class="sp-val">~1.5 ЧАСА</span></div>
+  </div>`;
+
+  plan.groups.forEach(g => {
+    html += `<div class="wo-section">
+      <div class="wo-section-label">${g.label}</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <table class="ex-table">
+        <thead><tr>
+          <th style="width:35%">Упражнение</th>
+          <th>Подходы × Повт.</th>
+          <th>Вес</th>
+          <th>Отдых</th>
+        </tr></thead>
+        <tbody>`;
+    g.exercises.forEach(ex => {
+      html += `<tr>
+        <td><div class="ex-name">${ex.name}</div><div class="ex-hint">${ex.hint||''}</div></td>
+        <td><span class="ex-sets">${ex.sets}</span></td>
+        <td><div class="ex-wt">${ex.weight}</div>${ex.target?`<div class="ex-wt-target">↑ ${ex.target}</div>`:''}</td>
+        <td><span class="ex-rest">${ex.rest}</span></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  });
+
+  // Log section
+  html += `<div class="wo-log-area">
+    <div class="wo-log-header">ДНЕВНИК ТРЕНИРОВКИ — ${dayId.toUpperCase()}</div>
+    <div class="log-entry-grid">`;
+
+  plan.groups.forEach(g => {
+    g.exercises.forEach(ex => {
+      const key = ex.name.replace(/\s+/g,'_');
+      const loggedSets = savedLog[key] || [];
+      html += `<div class="log-ex-card">
+        <div class="log-ex-name">${ex.name}</div>
+        <div class="log-sets-list">`;
+      for(let i=0;i<ex.logSets;i++) {
+        const val = loggedSets[i] || '';
+        html += `<div class="log-set-row">
+          <span class="log-set-num">С${i+1}</span>
+          <input class="log-input" type="text" placeholder="кг × повт." value="${val}"
+            oninput="saveSetLog('${dayId}','${key}',${i},this.value)">
+        </div>`;
+      }
+      html += `</div></div>`;
+    });
+  });
+
+  html += `</div>
+    <textarea class="log-note" placeholder="Заметки по тренировке: самочувствие, что пошло хорошо, что нет, следующие цели..."
+      onchange="save('${dayId}','workout_note',this.value)">${savedNote}</textarea>
+    <div class="tip" style="margin-top:10px;">
+      <strong>Форма записи:</strong> пиши "82.5 × 5" или просто "5". Не забудь записать ощущения — это важнее чем цифры.
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function saveSetLog(dayId, exKey, setIdx, val) {
+  const log = load(dayId, 'workout_log') || {};
+  if(!log[exKey]) log[exKey] = [];
+  log[exKey][setIdx] = val;
+  save(dayId, 'workout_log', log);
+}
+
+// ─── RENDER NUTRITION ──────────────────────────────────────────────────
+function renderNutrition(dayId) {
+  const type = getNutritionType(dayId);
+  const n = NUTRITION[type];
+  const label = type === 'train' ? 'ДЕНЬ ТРЕНИРОВКИ' : 'ДЕНЬ ОТДЫХА';
+
+  let html = `<div class="stats-ribbon">
+    <div class="stat-pill"><span class="sp-lbl">РЕЖИМ</span><span class="sp-val">${label}</span></div>
+    <div class="stat-pill"><span class="sp-lbl">ПРОФИЦИТ</span><span class="sp-val">${type==='train'?'+300–400':'+100–200'} ККАЛ</span></div>
+    <div class="stat-pill"><span class="sp-lbl">ВОДА</span><span class="sp-val">${type==='train'?'2.5–3':'2+'} Л</span></div>
+  </div>
+
+  <div class="macro-row">
+    <div class="macro-chip kc"><div class="ml">Калории</div><div class="mv">${n.kcal}</div><div class="mu">ккал / день</div></div>
+    <div class="macro-chip pr"><div class="ml">Белок</div><div class="mv">${n.protein}г</div><div class="mu">~2.2г на кг</div></div>
+    <div class="macro-chip cb"><div class="ml">Углеводы</div><div class="mv">${n.carbs}г</div><div class="mu">/ день</div></div>
+    <div class="macro-chip ft"><div class="ml">Жиры</div><div class="mv">${n.fat}г</div><div class="mu">/ день</div></div>
+  </div>
+
+  <div class="meal-list">`;
+
+  n.meals.forEach((m,mi) => {
+    const srcClass = m.src==='work' ? 'src-work' : 'src-home';
+    const srcLabel = m.src==='work' ? 'РАБОТА' : 'ДОМА';
+    html += `<div class="meal-item">
+      <div class="meal-head" onclick="toggleMeal(this)">
+        <div class="meal-time-badge">${m.time}</div>
+        <div class="meal-name-col">
+          <div class="meal-title">${m.name}<span class="meal-src ${srcClass}">${srcLabel}</span></div>
+        </div>
+        <div class="meal-kcal">${m.kcal}</div>
+        <div class="meal-prot" style="margin-left:10px;">${m.prot} белка</div>
+        <div class="meal-chevron" style="margin-left:10px;">▼</div>
+      </div>
+      <div class="meal-body">
+        <ul class="meal-food-list">`;
+    m.foods.forEach(f => {
+      html += `<li class="meal-food-item">
+        <div><div>${f.name}</div><div class="mf-note">${f.note}</div></div>
+        <div class="mf-macro"><div class="mf-kcal">${f.kcal} ккал</div><div class="mf-prot">${f.prot} белка</div></div>
+      </li>`;
+    });
+    html += `</ul></div></div>`;
+  });
+
+  html += `</div>
+  <div class="tip" style="margin-top:16px;">
+    <strong>Гейнер:</strong> только если не добрал 400+ ккал за день. 
+    <strong>Протеин:</strong> послетренировочный — приоритет №1 после зала. 
+    <strong>Креатин:</strong> 5г каждый день в одно время.
+  </div>`;
+
+  return html;
+}
+
+function toggleMeal(head) {
+  const body = head.nextElementSibling;
+  const ch = head.querySelector('.meal-chevron');
+  const open = body.classList.toggle('open');
+  ch.textContent = open ? '▲' : '▼';
+}
+
+// ─── RENDER PROJECT ────────────────────────────────────────────────────
+function renderProject(dayId) {
+  const saved = load(dayId, 'project') || {
+    status: 'active',
+    focus: '',
+    done: [],
+    bugs: [],
+    next: '',
+    notes: ''
+  };
+
+  const statuses = ['active','review','debug','plan'];
+  const statusLabels = {active:'В РАБОТЕ', review:'РЕВЬЮ', debug:'ДЕБАГ', plan:'ПЛАНИНГ'};
+  const statusClasses = {active:'status-active', review:'status-review', debug:'status-debug', plan:'status-plan'};
+
+  let html = `<div class="proj-header-row">
+    <div class="proj-day-label">ПРОЕКТ — ${dayId.toUpperCase()}</div>
+    <select style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:6px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;"
+      onchange="updateProjStatus('${dayId}',this.value)">
+      ${statuses.map(s=>`<option value="${s}" ${saved.status===s?'selected':''}>${statusLabels[s]}</option>`).join('')}
+    </select>
+    <span class="proj-status-badge ${statusClasses[saved.status]}">${statusLabels[saved.status]}</span>
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <div class="wo-section-label" style="color:var(--purple);">ФОКУС НА СЕГОДНЯ</div>
+    <textarea class="proj-textarea" placeholder="Что планируешь сделать сегодня по проекту? (1–3 задачи)"
+      onchange="updateProjField('${dayId}','focus',this.value)">${saved.focus}</textarea>
+  </div>
+
+  <div class="proj-grid">
+    <div class="proj-card">
+      <div class="proj-card-head">
+        <div class="dot" style="background:var(--green)"></div>
+        <span style="color:var(--green)">СДЕЛАНО СЕГОДНЯ</span>
+      </div>
+      <div class="proj-card-body">
+        <ul class="feat-list" id="done-list-${dayId}">`;
+
+  (saved.done||[]).forEach((item, idx) => {
+    html += renderFeatItem(dayId, 'done', item, idx);
+  });
+
+  html += `</ul>
+        <div class="proj-add-row">
+          <input class="proj-add-input" id="done-input-${dayId}" type="text" placeholder="Добавить: что сделал...">
+          <select class="proj-add-type" id="done-type-${dayId}">
+            <option value="feat">feat</option>
+            <option value="fix">fix</option>
+            <option value="refactor">refactor</option>
+            <option value="test">test</option>
+          </select>
+          <button class="btn-add" onclick="addItem('${dayId}','done')">+ Добавить</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="proj-card">
+      <div class="proj-card-head">
+        <div class="dot" style="background:var(--red)"></div>
+        <span style="color:var(--red)">БАГИ / ПРОБЛЕМЫ</span>
+      </div>
+      <div class="proj-card-body">
+        <ul class="feat-list" id="bugs-list-${dayId}">`;
+
+  (saved.bugs||[]).forEach((item, idx) => {
+    html += renderFeatItem(dayId, 'bugs', item, idx);
+  });
+
+  html += `</ul>
+        <div class="proj-add-row">
+          <input class="proj-add-input" id="bugs-input-${dayId}" type="text" placeholder="Описание бага / проблемы...">
+          <select class="proj-add-type" id="bugs-type-${dayId}">
+            <option value="fix">fix</option>
+            <option value="feat">feat</option>
+            <option value="test">test</option>
+          </select>
+          <button class="btn-add" onclick="addItem('${dayId}','bugs')">+ Добавить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:14px;">
+    <div class="wo-section-label" style="color:var(--purple);">СЛЕДУЮЩИЕ ШАГИ</div>
+    <textarea class="proj-textarea" placeholder="Что делать завтра / на следующей сессии?"
+      onchange="updateProjField('${dayId}','next',this.value)">${saved.next}</textarea>
+  </div>
+
+  <div>
+    <div class="wo-section-label" style="color:var(--purple);">ЗАМЕТКИ / ИДЕИ</div>
+    <textarea class="proj-textarea" style="min-height:100px;" placeholder="Идеи, ссылки, архитектурные решения, вопросы..."
+      onchange="updateProjField('${dayId}','notes',this.value)">${saved.notes}</textarea>
+  </div>`;
+
+  return html;
+}
+
+function renderFeatItem(dayId, listType, item, idx) {
+  const checked = item.done ? 'checked' : '';
+  const textClass = item.done ? 'done' : '';
+  const typeClass = `ft-${item.type||'feat'}`;
+  return `<li class="feat-item" id="feat-${dayId}-${listType}-${idx}">
+    <div class="feat-cb ${checked}" onclick="toggleFeat('${dayId}','${listType}',${idx})">${item.done?'✓':''}</div>
+    <span class="feat-text ${textClass}">${item.text}</span>
+    <span class="feat-type ${typeClass}">${item.type||'feat'}</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--red);cursor:pointer;padding:0 4px;" 
+      onclick="removeItem('${dayId}','${listType}',${idx})">×</span>
+  </li>`;
+}
+
+function addItem(dayId, listType) {
+  const inp = document.getElementById(`${listType}-input-${dayId}`);
+  const sel = document.getElementById(`${listType}-type-${dayId}`);
+  const text = inp.value.trim();
+  if(!text) return;
+
+  const saved = load(dayId, 'project') || {done:[],bugs:[]};
+  if(!saved[listType]) saved[listType] = [];
+  saved[listType].push({text, type: sel.value, done: false});
+  save(dayId, 'project', saved);
+  inp.value = '';
+
+  const list = document.getElementById(`${listType}-list-${dayId}`);
+  const idx = saved[listType].length - 1;
+  list.insertAdjacentHTML('beforeend', renderFeatItem(dayId, listType, saved[listType][idx], idx));
+}
+
+function toggleFeat(dayId, listType, idx) {
+  const saved = load(dayId, 'project') || {done:[],bugs:[]};
+  saved[listType][idx].done = !saved[listType][idx].done;
+  save(dayId, 'project', saved);
+  const el = document.getElementById(`feat-${dayId}-${listType}-${idx}`);
+  if(el) {
+    const cb = el.querySelector('.feat-cb');
+    const txt = el.querySelector('.feat-text');
+    cb.classList.toggle('checked', saved[listType][idx].done);
+    cb.textContent = saved[listType][idx].done ? '✓' : '';
+    txt.classList.toggle('done', saved[listType][idx].done);
+  }
+}
+
+function removeItem(dayId, listType, idx) {
+  const saved = load(dayId, 'project') || {done:[],bugs:[]};
+  saved[listType].splice(idx, 1);
+  save(dayId, 'project', saved);
+  // re-render project panel
+  const panel = document.querySelector(`#day-${dayId} .panel[data-panel="project"]`);
+  if(panel && panel.classList.contains('active')) panel.innerHTML = renderProject(dayId);
+}
+
+function updateProjField(dayId, field, value) {
+  const saved = load(dayId, 'project') || {};
+  saved[field] = value;
+  save(dayId, 'project', saved);
+}
+
+function updateProjStatus(dayId, status) {
+  const saved = load(dayId, 'project') || {};
+  saved.status = status;
+  save(dayId, 'project', saved);
+  showToast();
+}
+
+// ─── SWITCH DAY / TAB ─────────────────────────────────────────────────
+function switchDay(dayId) {
+  activeDay = dayId;
+  renderWeekStrip();
+  renderMain();
+}
+
+function switchPanel(dayId, panelName) {
+  document.querySelectorAll(`#day-${dayId} .panel-tab`).forEach(t => {
+    t.classList.toggle('active', t.dataset.panel === panelName);
+  });
+  document.querySelectorAll(`#day-${dayId} .panel`).forEach(p => {
+    const isActive = p.dataset.panel === panelName;
+    p.classList.toggle('active', isActive);
+    if(isActive && !p._rendered) {
+      p._rendered = true;
+      if(panelName === 'schedule') p.innerHTML = renderSchedule(dayId);
+      if(panelName === 'workout') p.innerHTML = renderWorkout(dayId);
+      if(panelName === 'nutrition') p.innerHTML = renderNutrition(dayId);
+      if(panelName === 'project') p.innerHTML = renderProject(dayId);
+    }
+  });
+}
+
+// ─── RENDER MAIN ──────────────────────────────────────────────────────
+function renderMain() {
+  const main = document.getElementById('main-area');
+  const gym = isGymDay(activeDay);
+  const wt = getWorkoutType(activeDay);
+  const d = DAYS.find(x=>x.id===activeDay);
+
+  const dayTypeLabel = gym
+    ? `Тренировка · Программа ${wt} · ${WORKOUTS[wt].name}`
+    : (d.work ? 'Рабочий день · День отдыха от зала' : 'Выходной · Восстановление');
+
+  main.innerHTML = `
+  <div class="day-view active" id="day-${activeDay}">
+    <div class="day-title">${d.name.toUpperCase()}</div>
+    <div class="day-subtitle">// ${dayTypeLabel}</div>
+
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-panel="schedule" onclick="switchPanel('${activeDay}','schedule')">📅 Расписание</button>
+      <button class="panel-tab" data-panel="workout" onclick="switchPanel('${activeDay}','workout')">🏋️ Тренировка</button>
+      <button class="panel-tab" data-panel="nutrition" onclick="switchPanel('${activeDay}','nutrition')">🥗 Питание</button>
+      <button class="panel-tab" data-panel="project" onclick="switchPanel('${activeDay}','project')">💻 Проект</button>
+    </div>
+
+    <div class="panel active" data-panel="schedule">${renderSchedule(activeDay)}</div>
+    <div class="panel" data-panel="workout"></div>
+    <div class="panel" data-panel="nutrition"></div>
+    <div class="panel" data-panel="project"></div>
+  </div>`;
+
+  // Mark schedule as rendered
+  main.querySelector('.panel[data-panel="schedule"]')._rendered = true;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────
+renderWeekStrip();
+renderMain();
+</script>
+</body>
+</html>
